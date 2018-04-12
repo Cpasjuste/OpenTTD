@@ -17,7 +17,9 @@
 
 #include <errno.h>
 #include <signal.h>
+#ifndef __SWITCH__
 #include <sys/utsname.h>
+#endif
 
 #if defined(__GLIBC__)
 /* Execinfo (and thus making stacktraces) is a GNU extension */
@@ -42,6 +44,9 @@ class CrashLogUnix : public CrashLog {
 
 	/* virtual */ char *LogOSVersion(char *buffer, const char *last) const
 	{
+#ifdef __SWITCH__
+		return buffer + seprintf(buffer, last, "System: Switch\n");
+#else
 		struct utsname name;
 		if (uname(&name) < 0) {
 			return buffer + seprintf(buffer, last, "Could not get OS version: %s\n", strerror(errno));
@@ -58,6 +63,7 @@ class CrashLogUnix : public CrashLog {
 				name.version,
 				name.machine
 		);
+#endif
 	}
 
 	/* virtual */ char *LogError(char *buffer, const char *last, const char *message) const
